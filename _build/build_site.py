@@ -12,7 +12,7 @@ ORIGIN = "https://www.ndigocartel.com"
 ART = {"Tcf7vc2xDHtRjMUMXt65XB": "/books/", "SwnbmaBhrRVhnnjAok44NZ": "/playlists/",
        "5a9zgLhNEjrpqKJKQayzqy": "/games/", "5NXNwy6ttcot47ZUqQ9M6g": "/merch/"}
 PAGES = {  # src, out dir, title, description
- "home":      ("", "ndigo cartel", "ndigo cartel: a label for music released under avatars, plus playlists, mixes, games and books."),
+ "home":      ("", "ndigo cartel", "ndigo cartel. books, playlists, games and merch."),
  "books":     ("books/", "books · ndigo cartel", "Overtime editions and illustrated classics from ndigo cartel."),
  "playlists": ("playlists/", "playlists · ndigo cartel", "Spin the ndigo cartel playlists and open them on Spotify."),
  "games":     ("games/", "games · ndigo cartel", "LOR HEX and The Tester, coming soon from ndigo cartel."),
@@ -36,6 +36,7 @@ def build(key, src, out, title, desc):
     # review notes are internal: empty the description, keep the elements the scripts look up
     s = re.sub(r'(<div class="what">).*?(</div>)', r"\1\2", s, count=1, flags=re.S)
     s = re.sub(r'(<div class="tag">).*?(</div>)', r"\1\2", s, count=1, flags=re.S)
+    s = re.sub(r'<div class="footer">layout study[^<]*</div>\s*', "", s)  # merch comp's study line
     s = s.replace('<a href="#">ndigo cartel</a>', '<a href="/">ndigo cartel</a>')
     for aid, path in ART.items():
         s = s.replace(f'href="https://claude.ai/artifact/{aid}" target="_blank" rel="noopener"', f'href="{path}"')
