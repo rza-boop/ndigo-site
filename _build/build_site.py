@@ -68,4 +68,85 @@ def build(key, src, out, title, desc):
     (d / "index.html").write_text(head + s.strip() + "\n</body></html>\n")
     print("wrote", (d / "index.html").relative_to(SITE), len(s))
 
+# Legal entity (Rza, 13 Nov 2026): ndigo cartel is the brand and the site; the company is Dream Bigger Media Group, LLC.
+LEGAL = "Dream Bigger Media Group, LLC"
+CONTACT = "frank@frankwhitedealsdope.com"
+
+def add_legal_footer():
+    """Home is the only page with a footer. Name the company there and link the privacy page."""
+    f = SITE / "index.html"; s = f.read_text()
+    old = '<span id="sq"></span><span>ndigo cartel</span></div></footer>'
+    assert old in s, "home footer changed"
+    new = s.replace(old, f'<span id="sq"></span><span>ndigo cartel · a division of {LEGAL} · <a href="/privacy/" style="color:inherit">privacy</a></span></div></footer>')
+    f.write_text(new)
+    n = SITE / "404.html"  # the not-found page is the home page under another title
+    n.write_text(new.replace("<title>ndigo cartel</title>", "<title>not found · ndigo cartel</title>", 1))
+
+def build_privacy():
+    """A plain text page in the home page's own styles (its :root, body, .led, .gut, menu and footer rules, copied from the
+    built home so it follows any change to the comp). No new look."""
+    home = (SITE / "index.html").read_text()
+    def rule(pat):
+        m = re.search(pat, home, flags=re.S); assert m, pat; return m.group(0)
+    css = "\n".join([rule(r":root\{.*?\n\}"), "*{box-sizing:border-box}", rule(r"body\{margin:0;color:var\(--ink\).*?var\(--B\)\}"),
+                     rule(r"body\.nopegs\{[^}]*\}"), "html,body{overflow-x:clip}", rule(r"\.led\{[^}]*\}"), rule(r"\.gut\{[^}]*\}"),
+                     "\n".join(re.findall(r"nav\.menu[^{\n]*\{[^}]*\}", home)), "\n".join(re.findall(r"footer\.site[^{\n]*\{[^}]*\}", home)),
+                     "main.legal{max-width:1180px;margin:0 auto;padding-block:16px}main.legal .in{padding:18px 20px;color:var(--ink)}"
+                     "main.legal h1{font:400 34px/1.1 var(--vt);color:var(--G);margin:0 0 6px}main.legal h2{font:400 26px/1.2 var(--vt);color:var(--P);margin:22px 0 4px}"
+                     "main.legal p,main.legal li{margin:6px 0;max-width:70ch}main.legal a{color:var(--G)}main.legal .d{color:var(--dim)}"])
+    fonts = rule(r'<link rel="stylesheet" href="https://fonts\.googleapis\.com[^>]*>')
+    title, desc, url = "privacy · ndigo cartel", f"Privacy policy for ndigo cartel, a division of {LEGAL}.", ORIGIN + "/privacy/"
+    body = f"""<nav class="menu gut" aria-label="Site"><div class="in led">
+  <a href="/">ndigo cartel</a><a href="/books/">books</a><a href="/playlists/">playlists</a><a href="/games/">games</a><a href="/merch/">merch</a>
+</div></nav>
+<main class="legal gut"><div class="in led">
+<h1>privacy policy</h1>
+<p class="d">Effective 13 November 2026</p>
+<p>ndigo cartel is a brand and division of {LEGAL}. This site, www.ndigocartel.com, and the games, books, playlists and merch published under the ndigo cartel name are operated by {LEGAL} ("we", "us").</p>
+<h2>what we collect</h2>
+<ul>
+<li><b>Your email address</b>, only if you type it into the sign-up box on the games page. It is sent to our inbox through FormSubmit (formsubmit.co), which delivers the form.</li>
+<li>Nothing else. This site has no accounts, no analytics, no advertising trackers, and sets no cookies of its own.</li>
+</ul>
+<h2>services this site loads</h2>
+<ul>
+<li>The site is hosted on GitHub Pages. GitHub may log your IP address to serve and protect the site.</li>
+<li>Fonts are loaded from Google Fonts, so Google receives the request for them.</li>
+<li>Links to Spotify, Substack and other sites take you to those sites, which have their own policies.</li>
+</ul>
+<h2>how we use your email</h2>
+<p>To tell you about ndigo cartel games and releases. We do not sell it, rent it or trade it.</p>
+<h2>removing your email</h2>
+<p>Write to <a href="mailto:{CONTACT}">{CONTACT}</a> and we will remove it.</p>
+<h2>games and apps</h2>
+<p>As ndigo cartel games and apps are released, what each one collects will be listed on this page.</p>
+<h2>children</h2>
+<p>This site is not directed to children under 13, and we do not knowingly collect personal information from them.</p>
+<h2>changes</h2>
+<p>If this policy changes, the new version and its date will be posted here.</p>
+<h2>contact</h2>
+<p>{LEGAL}<br><a href="mailto:{CONTACT}">{CONTACT}</a></p>
+</div></main>
+<footer class="site gut"><div class="in led"><span></span><span>ndigo cartel · a division of {LEGAL}</span></div></footer>"""
+    page = f"""<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{url}">
+<link rel="icon" href="{FAV}">
+<meta name="theme-color" content="#16141A">
+{fonts}
+<style>
+{css}
+</style>
+</head><body class="nopegs">
+{body}
+</body></html>
+"""
+    d = SITE / "privacy"; d.mkdir(exist_ok=True); (d / "index.html").write_text(page); print("wrote privacy/index.html", len(page))
+
 for k, (src, title, desc) in PAGES.items(): build(k, src, src, title, desc)
+add_legal_footer()
+build_privacy()
